@@ -3,6 +3,8 @@
 
 Modern personal finance tracking application designed for Indian users, built with React and TypeScript.
 
+![image](https://github.com/user-attachments/assets/5570a072-16b9-4f1a-bfd3-057eb11b3fa2)
+
 ## Features
 
 - Track expenses in Indian Rupees (₹)
