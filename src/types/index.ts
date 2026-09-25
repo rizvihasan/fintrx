@@ -1,3 +1,4 @@
+export type TransactionType = "income" | "expense";
 
 export interface Transaction {
   id: string;
@@ -5,9 +6,26 @@ export interface Transaction {
   date: string;
   description: string;
   category: string;
+  type: TransactionType;
+  recurringId?: string;
 }
 
-export type TransactionFormData = Omit<Transaction, 'id'>;
+// `recurring` is a form-only flag: when set on add, a monthly recurring
+// template is created alongside the first transaction.
+export type TransactionFormData = Omit<Transaction, "id" | "recurringId"> & {
+  recurring?: boolean;
+};
+
+export interface RecurringTemplate {
+  id: string;
+  amount: number;
+  description: string;
+  category: string;
+  type: TransactionType;
+  dayOfMonth: number;
+  startMonth: string; // YYYY-MM
+  lastGenerated?: string; // YYYY-MM of the most recent generated month
+}
 
 export interface ChartData {
   name: string;
@@ -34,5 +52,6 @@ export const DEFAULT_CATEGORIES: Category[] = [
   { id: "healthcare", name: "Healthcare", color: "#ec4899" },
   { id: "education", name: "Education", color: "#14b8a6" },
   { id: "household", name: "Household", color: "#6366f1" },
+  { id: "salary", name: "Salary", color: "#10b981" },
   { id: "other", name: "Other", color: "#64748b" }
 ];

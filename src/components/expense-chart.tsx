@@ -1,7 +1,7 @@
 
 import { useMemo } from "react";
 import { Transaction, ChartData } from "@/types";
-import { groupTransactionsByMonth, formatCurrency } from "@/utils/transactions";
+import { groupExpensesByMonth, formatCurrency } from "@/utils/transactions";
 import {
   BarChart,
   Bar,
@@ -47,7 +47,7 @@ export function ExpenseChart({ transactions }: ExpenseChartProps) {
   
   // Process transaction data for the chart
   const chartData = useMemo(() => {
-    return groupTransactionsByMonth(transactions);
+    return groupExpensesByMonth(transactions);
   }, [transactions]);
 
   // Empty state when no transactions yet

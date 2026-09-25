@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { DEFAULT_CATEGORIES } from '@/types';
+import { Category } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,11 +14,12 @@ import { useToast } from '@/hooks/use-toast';
 
 interface BudgetFormProps {
   onSubmit: (category: string, amount: number) => void;
+  categories: Category[];
   currentBudget?: number;
   initialCategory?: string;
 }
 
-export function BudgetForm({ onSubmit, currentBudget = 0, initialCategory }: BudgetFormProps) {
+export function BudgetForm({ onSubmit, categories, currentBudget = 0, initialCategory }: BudgetFormProps) {
   const [category, setCategory] = useState(initialCategory || '');
   const [amount, setAmount] = useState(currentBudget.toString());
   const { toast } = useToast();
@@ -68,7 +69,7 @@ export function BudgetForm({ onSubmit, currentBudget = 0, initialCategory }: Bud
             <SelectValue placeholder="Select category" />
           </SelectTrigger>
           <SelectContent>
-            {DEFAULT_CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <SelectItem key={cat.id} value={cat.id}>
                 {cat.name}
               </SelectItem>

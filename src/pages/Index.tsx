@@ -1,8 +1,10 @@
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTransactions } from "@/hooks/use-transactions";
 import { useBudgets } from "@/hooks/use-budgets";
-import { Sun, Moon } from "lucide-react";
+import { useCategories } from "@/hooks/use-categories";
+import { migrateFromLocalStorage, materializeRecurring } from "@/lib/db";
+import { transactionsToCsv, downloadCsv } from "@/utils/transactions";
+import { Sun, Moon, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, PieChart, BarChart, List } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
@@ -26,24 +28,45 @@ import {
 } from "@/components/ui/tabs";
 
 const Index = () => {
-  const { 
-    transactions, 
-    addTransaction, 
-    updateTransaction, 
-    deleteTransaction 
-  } = useTransactions();
   const {
-    budgets,
-    setBudget,
-  } = useBudgets();
+    transactions,
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+  } = useTransactions();
+  const { budgets, setBudget } = useBudgets();
+  const { categories } = useCategories();
   const [mobileDialogOpen, setMobileDialogOpen] = useState(false);
   const [budgetDialogOpen, setBudgetDialogOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      await migrateFromLocalStorage();
+      await materializeRecurring();
+      setReady(true);
+    })();
+  }, []);
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark');
+    document.documentElement.classList.toggle("dark");
   };
+
+  const handleExport = () => {
+    const csv = transactionsToCsv(transactions, categories);
+    const stamp = new Date().toISOString().split("T")[0];
+    downloadCsv(`fintrx-transactions-${stamp}.csv`, csv);
+  };
+
+  if (!ready) {
+    return (
+      <div className="container mx-auto py-24 px-4 text-center text-muted-foreground">
+        Loading your data...
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-6 px-4 md:px-6 space-y-8">
@@ -53,24 +76,34 @@ const Index = () => {
             FinTRX
           </h1>
           <p className="text-muted-foreground">
-            Track, visualize, and manage your personal expenses
+            Track, visualize, and manage your money - stored only on this device
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={toggleDarkMode}
-          className="rounded-full"
-        >
-          {isDarkMode ? (
-            <Sun className="h-5 w-5" />
-          ) : (
-            <Moon className="h-5 w-5" />
-          )}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleExport}
+            className="rounded-full"
+            title="Export all transactions as CSV"
+          >
+            <Download className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleDarkMode}
+            className="rounded-full"
+          >
+            {isDarkMode ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
       </header>
 
-      {/* Expense Summary */}
       <ExpenseSummary transactions={transactions} />
 
       {/* Mobile Action Buttons */}
@@ -83,7 +116,7 @@ const Index = () => {
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <TransactionForm 
+            <TransactionForm
               onSubmit={(data) => {
                 addTransaction(data);
                 setMobileDialogOpen(false);
@@ -99,7 +132,8 @@ const Index = () => {
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <BudgetForm 
+            <BudgetForm
+              categories={categories}
               onSubmit={(category, amount) => {
                 setBudget(category, amount);
                 setBudgetDialogOpen(false);
@@ -114,7 +148,7 @@ const Index = () => {
         {/* Forms (Desktop) */}
         <div className="hidden md:flex md:flex-col space-y-6">
           <TransactionForm onSubmit={addTransaction} />
-          <BudgetForm onSubmit={setBudget} />
+          <BudgetForm onSubmit={setBudget} categories={categories} />
         </div>
 
         {/* Charts and Transactions */}
@@ -137,12 +171,13 @@ const Index = () => {
             <Separator className="my-2" />
             <TabsContent value="charts" className="space-y-6">
               <ExpenseChart transactions={transactions} />
-              <CategoryPieChart transactions={transactions} />
+              <CategoryPieChart transactions={transactions} categories={categories} />
             </TabsContent>
             <TabsContent value="budget">
-              <BudgetOverview 
+              <BudgetOverview
                 transactions={transactions}
                 budgets={budgets}
+                categories={categories}
               />
             </TabsContent>
             <TabsContent value="transactions">
@@ -155,9 +190,9 @@ const Index = () => {
           </Tabs>
         </div>
       </div>
-      
+
       <footer className="mt-12 border-t pt-6 text-sm text-muted-foreground">
-        <p>FinTRX - Track and manage your expenses</p>
+        <p>FinTRX - your data never leaves this device</p>
       </footer>
     </div>
   );

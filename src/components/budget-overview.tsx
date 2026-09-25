@@ -1,25 +1,25 @@
-
 import { useMemo } from 'react';
-import { Transaction, DEFAULT_CATEGORIES } from '@/types';
+import { Transaction, Category } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { formatCurrency } from '@/utils/transactions';
+import { formatCurrency, isExpense } from '@/utils/transactions';
 
 interface BudgetOverviewProps {
   transactions: Transaction[];
   budgets: { category: string; budget: number }[];
+  categories: Category[];
 }
 
-export function BudgetOverview({ transactions, budgets }: BudgetOverviewProps) {
+export function BudgetOverview({ transactions, budgets, categories }: BudgetOverviewProps) {
   const categoryTotals = useMemo(() => {
-    return transactions.reduce((acc, transaction) => {
+    return transactions.filter(isExpense).reduce((acc, transaction) => {
       const category = transaction.category || 'other';
       acc[category] = (acc[category] || 0) + transaction.amount;
       return acc;
     }, {} as Record<string, number>);
   }, [transactions]);
 
-  const budgetData = DEFAULT_CATEGORIES.map(category => {
+  const budgetData = categories.map(category => {
     const spent = categoryTotals[category.id] || 0;
     const budget = budgets.find(b => b.category === category.id)?.budget || 0;
     const percentage = budget > 0 ? (spent / budget) * 100 : 0;
@@ -62,7 +62,7 @@ export function BudgetOverview({ transactions, budgets }: BudgetOverviewProps) {
                   {formatCurrency(item.spent)} / {formatCurrency(item.budget)}
                 </span>
               </div>
-              <Progress 
+              <Progress
                 value={item.percentage}
                 className={`${item.overBudget ? 'bg-destructive/20' : ''} ${
                   item.overBudget ? '[&>div]:bg-destructive' : ''

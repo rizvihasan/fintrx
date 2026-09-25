@@ -1,64 +1,47 @@
-
-import { useState, useEffect } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "@/lib/db";
 import { Transaction, TransactionFormData } from "@/types";
-import { generateId } from "@/utils/transactions";
 
 export function useTransactions() {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const transactions = useLiveQuery(
+    () => db.transactions.toArray(),
+    []
+  );
 
-  // Load transactions from localStorage on initial render
-  useEffect(() => {
-    const storedTransactions = localStorage.getItem("transactions");
-    if (storedTransactions) {
-      try {
-        setTransactions(JSON.parse(storedTransactions));
-      } catch (error) {
-        console.error("Failed to parse stored transactions:", error);
-      }
+  const addTransaction = async (data: TransactionFormData) => {
+    const { recurring, ...fields } = data;
+    const tx: Transaction = { ...fields, id: crypto.randomUUID() };
+    await db.transactions.add(tx);
+
+    if (recurring) {
+      const month = tx.date.slice(0, 7);
+      const dayOfMonth = Number(tx.date.slice(8, 10)) || 1;
+      await db.recurring.add({
+        id: crypto.randomUUID(),
+        amount: tx.amount,
+        description: tx.description,
+        category: tx.category,
+        type: tx.type,
+        dayOfMonth,
+        startMonth: month,
+        lastGenerated: month,
+      });
     }
-    setIsLoading(false);
-  }, []);
-
-  // Save transactions to localStorage whenever they change
-  useEffect(() => {
-    if (!isLoading) {
-      localStorage.setItem("transactions", JSON.stringify(transactions));
-    }
-  }, [transactions, isLoading]);
-
-  // Add a new transaction
-  const addTransaction = (transactionData: TransactionFormData) => {
-    const newTransaction: Transaction = {
-      ...transactionData,
-      id: generateId(),
-    };
-
-    setTransactions((prev) => [...prev, newTransaction]);
-    return newTransaction;
+    return tx;
   };
 
-  // Update an existing transaction
-  const updateTransaction = (id: string, transactionData: TransactionFormData) => {
-    setTransactions((prev) =>
-      prev.map((transaction) =>
-        transaction.id === id
-          ? { ...transactionData, id }
-          : transaction
-      )
-    );
+  const updateTransaction = async (id: string, data: Omit<Transaction, "id">) => {
+    const { recurringId, ...fields } = data;
+    await db.transactions.update(id, fields);
   };
 
-  // Delete a transaction
-  const deleteTransaction = (id: string) => {
-    setTransactions((prev) =>
-      prev.filter((transaction) => transaction.id !== id)
-    );
+  const deleteTransaction = async (id: string) => {
+    await db.transactions.delete(id);
   };
 
   return {
-    transactions,
-    isLoading,
+    transactions: transactions ?? [],
+    isLoading: transactions === undefined,
     addTransaction,
     updateTransaction,
     deleteTransaction,

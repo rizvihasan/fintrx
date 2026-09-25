@@ -168,7 +168,14 @@ export function TransactionList({
                       <TableCell className="font-medium">
                         {transaction.description}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell
+                        className={`text-right whitespace-nowrap ${
+                          transaction.type === "income"
+                            ? "text-teal-500 font-medium"
+                            : ""
+                        }`}
+                      >
+                        {transaction.type === "income" ? "+" : "-"}
                         {formatCurrency(transaction.amount)}
                       </TableCell>
                       <TableCell className="text-right">
@@ -191,6 +198,7 @@ export function TransactionList({
                                   date: transaction.date,
                                   description: transaction.description,
                                   category: transaction.category,
+                                  type: transaction.type ?? "expense",
                                 }}
                                 onSubmit={(data) => {
                                   onUpdate(transaction.id, data);

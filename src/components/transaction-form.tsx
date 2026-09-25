@@ -1,9 +1,9 @@
-
-import React from "react";
+import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TransactionFormData, DEFAULT_CATEGORIES } from "@/types";
+import { TransactionFormData, TransactionType } from "@/types";
+import { useCategories } from "@/hooks/use-categories";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   amount: z.coerce
@@ -21,7 +23,18 @@ const formSchema = z.object({
     message: "Description must be 100 characters or less",
   }),
   category: z.string().min(1, { message: "Category is required" }),
+  type: z.enum(["income", "expense"]),
+  recurring: z.boolean().optional(),
 });
+
+const EMPTY_DEFAULTS: TransactionFormData = {
+  amount: 0,
+  date: new Date().toISOString().split("T")[0],
+  description: "",
+  category: "other",
+  type: "expense",
+  recurring: false,
+};
 
 interface TransactionFormProps {
   onSubmit: (data: TransactionFormData) => void;
@@ -32,30 +45,35 @@ interface TransactionFormProps {
 
 export function TransactionForm({
   onSubmit,
-  defaultValues = {
-    amount: 0,
-    date: new Date().toISOString().split("T")[0],
-    description: "",
-    category: "other",
-  },
+  defaultValues = EMPTY_DEFAULTS,
   isEditing = false,
   onCancel,
 }: TransactionFormProps) {
+  const { categories, addCategory } = useCategories();
+  const [newCategory, setNewCategory] = useState("");
+  const [addingCategory, setAddingCategory] = useState(false);
+
   const form = useForm<TransactionFormData>({
     resolver: zodResolver(formSchema),
     defaultValues,
   });
 
+  const type = form.watch("type");
+
   const handleSubmit = (data: TransactionFormData) => {
     onSubmit(data);
     if (!isEditing) {
-      form.reset({
-        amount: 0,
-        date: new Date().toISOString().split("T")[0],
-        description: "",
-        category: "other",
-      });
+      form.reset({ ...EMPTY_DEFAULTS, type });
     }
+  };
+
+  const handleAddCategory = async () => {
+    const name = newCategory.trim();
+    if (!name) return;
+    const category = await addCategory(name);
+    form.setValue("category", category.id);
+    setNewCategory("");
+    setAddingCategory(false);
   };
 
   return (
@@ -69,19 +87,34 @@ export function TransactionForm({
       <CardContent className="pt-4">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            {!isEditing && (
+              <div className="grid grid-cols-2 gap-2">
+                {(["expense", "income"] as TransactionType[]).map((t) => (
+                  <Button
+                    key={t}
+                    type="button"
+                    variant={type === t ? "default" : "outline"}
+                    className={cn(
+                      type === t &&
+                        (t === "expense"
+                          ? "bg-finance-danger hover:bg-finance-danger/90"
+                          : "bg-teal-500 hover:bg-teal-600")
+                    )}
+                    onClick={() => form.setValue("type", t)}
+                  >
+                    {t === "expense" ? "Expense" : "Income"}
+                  </Button>
+                ))}
+              </div>
+            )}
             <FormField
               control={form.control}
               name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Amount ($)</FormLabel>
+                  <FormLabel>Amount (₹)</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="0.00"
-                      type="number"
-                      step="0.01"
-                      {...field}
-                    />
+                    <Input placeholder="0.00" type="number" step="0.01" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -107,10 +140,7 @@ export function TransactionForm({
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="E.g., Grocery shopping"
-                      {...field}
-                    />
+                    <Input placeholder="E.g., Grocery shopping" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -122,24 +152,18 @@ export function TransactionForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a category" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {DEFAULT_CATEGORIES.map((category) => (
-                        <SelectItem 
-                          key={category.id} 
-                          value={category.id}
-                        >
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
                           <div className="flex items-center gap-2">
-                            <div 
-                              className="w-3 h-3 rounded-full" 
+                            <div
+                              className="w-3 h-3 rounded-full"
                               style={{ backgroundColor: category.color }}
                             />
                             {category.name}
@@ -148,33 +172,70 @@ export function TransactionForm({
                       ))}
                     </SelectContent>
                   </Select>
+                  {addingCategory ? (
+                    <div className="flex gap-2 pt-1">
+                      <Input
+                        placeholder="New category name"
+                        value={newCategory}
+                        onChange={(e) => setNewCategory(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddCategory();
+                          }
+                        }}
+                      />
+                      <Button type="button" variant="outline" onClick={handleAddCategory}>
+                        Add
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="h-auto p-0 text-xs"
+                      onClick={() => setAddingCategory(true)}
+                    >
+                      + New category
+                    </Button>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
             />
+            {!isEditing && (
+              <FormField
+                control={form.control}
+                name="recurring"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-2 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Repeat monthly (rent, salary, subscriptions)
+                    </FormLabel>
+                  </FormItem>
+                )}
+              />
+            )}
             <CardFooter className="px-0 pb-0 pt-2 flex gap-2">
               <Button type="submit" className="bg-teal-500 hover:bg-teal-600">
                 {isEditing ? "Update" : "Add"} Transaction
               </Button>
               {onCancel && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onCancel}
-                >
+                <Button type="button" variant="outline" onClick={onCancel}>
                   Cancel
                 </Button>
               )}
               {!isEditing && (
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   variant="ghost"
-                  onClick={() => form.reset({
-                    amount: 0,
-                    date: new Date().toISOString().split("T")[0],
-                    description: "",
-                    category: "other",
-                  })}
+                  onClick={() => form.reset(EMPTY_DEFAULTS)}
                 >
                   Reset
                 </Button>

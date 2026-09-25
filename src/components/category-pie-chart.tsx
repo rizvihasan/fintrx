@@ -1,4 +1,4 @@
-import { Transaction, Category, DEFAULT_CATEGORIES } from '@/types';
+import { Transaction, Category } from '@/types';
 import {
   PieChart,
   Pie,
@@ -8,20 +8,21 @@ import {
   Tooltip,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatCurrency } from '@/utils/transactions';
+import { formatCurrency, isExpense } from '@/utils/transactions';
 
 interface CategoryPieChartProps {
   transactions: Transaction[];
+  categories: Category[];
 }
 
-export function CategoryPieChart({ transactions }: CategoryPieChartProps) {
-  const categoryTotals = transactions.reduce((acc, transaction) => {
+export function CategoryPieChart({ transactions, categories }: CategoryPieChartProps) {
+  const categoryTotals = transactions.filter(isExpense).reduce((acc, transaction) => {
     const category = transaction.category || 'other';
     acc[category] = (acc[category] || 0) + transaction.amount;
     return acc;
   }, {} as Record<string, number>);
 
-  const data = DEFAULT_CATEGORIES
+  const data = categories
     .map(category => ({
       name: category.name,
       value: categoryTotals[category.id] || 0,
@@ -36,7 +37,7 @@ export function CategoryPieChart({ transactions }: CategoryPieChartProps) {
           <CardTitle>Category Breakdown</CardTitle>
         </CardHeader>
         <CardContent className="h-[300px] flex items-center justify-center">
-          <p className="text-muted-foreground">No transaction data available</p>
+          <p className="text-muted-foreground">No expense data available</p>
         </CardContent>
       </Card>
     );
@@ -59,7 +60,7 @@ export function CategoryPieChart({ transactions }: CategoryPieChartProps) {
                 fill="#8884d8"
                 dataKey="value"
                 labelLine={{ strokeWidth: 1.5 }}
-                label={({ name, value }) => 
+                label={({ name, value }) =>
                   `${name}: ${formatCurrency(value)}`
                 }
               >
