@@ -57,7 +57,7 @@ jobs:
         run: ./gradlew bundleRelease --no-daemon
 
       - name: Verify signature
-        run: $ANDROID_HOME/build-tools/36.0.0/apksigner verify --print-certs android/app/build/outputs/bundle/release/app-release.aab
+        run: jarsigner -verify -verbose -certs android/app/build/outputs/bundle/release/app-release.aab | head -20
 
       - uses: actions/upload-artifact@v4
         with:
