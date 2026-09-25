@@ -19,15 +19,16 @@
 
 ## The Android app
 
-FinTRX is built phone-first. The Android app boots straight into an iOS-grade interface designed for one-handed use - not a wrapped website.
+FinTRX is built phone-first. First open gives you a three-screen onboarding, then drops you straight into the app - no landing page, no sign-up, no website pretending to be an app. Every open after that goes directly to your money.
 
 <p align="center">
-  <img src="docs/screenshots/app-home.png" width="230" alt="Home - greeting, balance, recent activity" />
-  <img src="docs/screenshots/app-swipe.png" width="230" alt="Swipe a transaction to edit or delete" />
-  <img src="docs/screenshots/app-add.png" width="230" alt="Add transaction sheet" />
+  <img src="docs/screenshots/app-onboarding.png" width="200" alt="First-open onboarding" />
+  <img src="docs/screenshots/app-home.png" width="200" alt="Home - greeting, balance, recent activity" />
+  <img src="docs/screenshots/app-swipe.png" width="200" alt="Swipe a transaction to edit or delete" />
+  <img src="docs/screenshots/app-add.png" width="200" alt="Add transaction sheet" />
 </p>
 
-**Install:** grab `fintrx-vX.Y.Z.apk` from the [latest release](https://github.com/rizvihasan/fintrx/releases/latest), open it on your phone, and allow the install when Android asks. That's the whole setup - there is no sign-up.
+**Install:** grab the APK from the [latest release](https://github.com/rizvihasan/fintrx/releases/latest), open it on your phone, and allow the install when Android asks. First launch walks you through three quick screens and you're in.
 
 | | |
 |---|---|
