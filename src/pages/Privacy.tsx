@@ -23,10 +23,11 @@ export default function Privacy() {
           <p>
             When you explicitly use "Ask AI" or "Suggest with AI", the
             transactions or description needed for that single answer are sent
-            over an encrypted connection to our stateless AI proxy, forwarded
-            to the AI provider (Groq), and discarded. Nothing is logged, cached,
-            or stored by FinTRX. If you never use these features, no data ever
-            leaves your device.
+            over an encrypted connection through our stateless proxy to the AI
+            provider (Groq) to produce that one answer. FinTRX itself runs no
+            database and logs, caches, and stores nothing on any server. The AI
+            provider's own data policy applies to its side of the request. If
+            you never use these features, no data ever leaves your device.
           </p>
           <h2 className="text-xl font-semibold text-slate-100">Analytics and tracking</h2>
           <p>None. No analytics SDKs, no advertising, no trackers.</p>

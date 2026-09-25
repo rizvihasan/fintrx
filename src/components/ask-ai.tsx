@@ -74,8 +74,8 @@ export function AskAi({ transactions, categories }: AskAiProps) {
           Ask your money
         </CardTitle>
         <p className="text-xs text-muted-foreground">
-          Answers come from a one-time request to an AI provider. Your data is
-          never stored anywhere but this device.
+          Answers come from a one-time request to an AI provider. FinTRX stores
+          nothing on any server; your history lives only on this device.
         </p>
       </CardHeader>
       <Separator />
