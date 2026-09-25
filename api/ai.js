@@ -92,7 +92,7 @@ export default async function handler(req, res) {
           },
         ],
         MODEL_FAST,
-        20
+        400
       );
       const norm = result.toLowerCase().replace(/[^a-z0-9]/g, "");
       const match = categories.find((c) => {
