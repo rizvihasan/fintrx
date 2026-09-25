@@ -4,7 +4,7 @@ import { useBudgets } from "@/hooks/use-budgets";
 import { useCategories } from "@/hooks/use-categories";
 import { migrateFromLocalStorage, materializeRecurring } from "@/lib/db";
 import { transactionsToCsv, downloadCsv } from "@/utils/transactions";
-import { Sun, Moon, Download } from "lucide-react";
+import { Sun, Moon, Download, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, PieChart, BarChart, List } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
@@ -15,6 +15,7 @@ import { BudgetOverview } from "@/components/budget-overview";
 import { TransactionList } from "@/components/transaction-list";
 import { TransactionForm } from "@/components/transaction-form";
 import { BudgetForm } from "@/components/budget-form";
+import { AskAi } from "@/components/ask-ai";
 import {
   Dialog,
   DialogContent,
@@ -154,7 +155,7 @@ const Index = () => {
         {/* Charts and Transactions */}
         <div className="lg:col-span-2 space-y-6">
           <Tabs defaultValue="charts" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="charts">
                 <BarChart className="h-4 w-4 mr-2" />
                 Charts
@@ -166,6 +167,10 @@ const Index = () => {
               <TabsTrigger value="transactions">
                 <List className="h-4 w-4 mr-2" />
                 Transactions
+              </TabsTrigger>
+              <TabsTrigger value="ask">
+                <Sparkles className="h-4 w-4 mr-2" />
+                Ask AI
               </TabsTrigger>
             </TabsList>
             <Separator className="my-2" />
@@ -179,6 +184,9 @@ const Index = () => {
                 budgets={budgets}
                 categories={categories}
               />
+            </TabsContent>
+            <TabsContent value="ask">
+              <AskAi transactions={transactions} categories={categories} />
             </TabsContent>
             <TabsContent value="transactions">
               <TransactionList

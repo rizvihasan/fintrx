@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TransactionFormData, TransactionType } from "@/types";
 import { useCategories } from "@/hooks/use-categories";
+import { suggestCategory } from "@/lib/ai";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,6 +53,7 @@ export function TransactionForm({
   const { categories, addCategory } = useCategories();
   const [newCategory, setNewCategory] = useState("");
   const [addingCategory, setAddingCategory] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
 
   const form = useForm<TransactionFormData>({
     resolver: zodResolver(formSchema),
@@ -64,6 +66,22 @@ export function TransactionForm({
     onSubmit(data);
     if (!isEditing) {
       form.reset({ ...EMPTY_DEFAULTS, type });
+    }
+  };
+
+  const handleSuggest = async () => {
+    const description = form.getValues("description").trim();
+    if (!description || suggesting) return;
+    setSuggesting(true);
+    try {
+      const id = await suggestCategory(description, categories);
+      if (categories.some((c) => c.id === id)) {
+        form.setValue("category", id);
+      }
+    } catch {
+      // AI unavailable - leave the current category untouched
+    } finally {
+      setSuggesting(false);
     }
   };
 
@@ -151,7 +169,18 @@ export function TransactionForm({
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Category</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Category</FormLabel>
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="h-auto p-0 text-xs"
+                      disabled={suggesting}
+                      onClick={handleSuggest}
+                    >
+                      {suggesting ? "Suggesting..." : "Suggest with AI"}
+                    </Button>
+                  </div>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
