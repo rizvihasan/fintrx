@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">FinTRX</string>
+    <string name="title_activity_main">FinTRX</string>
+    <string name="package_name">com.rizvihasan.fintrx</string>
+    <string name="custom_url_scheme">com.rizvihasan.fintrx</string>
+</resources>

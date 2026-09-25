@@ -163,6 +163,7 @@ export default function Landing() {
           </div>
           <div className="flex gap-6">
             <Link to="/app" className="hover:text-slate-300">Open the app</Link>
+            <Link to="/privacy" className="hover:text-slate-300">Privacy</Link>
             <a
               href="https://github.com/rizvihasan/fintrx"
               target="_blank"
