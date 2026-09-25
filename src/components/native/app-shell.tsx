@@ -71,6 +71,8 @@ export function AppShell({
 
   useEffect(() => {
     configureStatusBar();
+    document.documentElement.classList.add("app-shell-root");
+    return () => document.documentElement.classList.remove("app-shell-root");
   }, []);
 
   const switchTab = (t: Tab) => {
@@ -111,7 +113,7 @@ export function AppShell({
   };
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-lg flex-col bg-background">
+    <div className="app-shell mx-auto flex min-h-dvh max-w-lg flex-col bg-background">
       <header className="sticky top-0 z-10 border-b border-border/60 bg-background/80 backdrop-blur-xl">
         <div className="flex items-center justify-between px-4 pb-2 pt-3">
           <h1 className="text-[28px] font-bold tracking-tight">
