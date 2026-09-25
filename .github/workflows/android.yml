@@ -47,14 +47,14 @@ jobs:
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/fintrx-upload.keystore
 
-      - name: Build signed release AAB
+      - name: Build signed release AAB + APK
         working-directory: android
         env:
           ANDROID_KEYSTORE_FILE: ${{ github.workspace }}/android/app/fintrx-upload.keystore
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: ./gradlew bundleRelease --no-daemon
+        run: ./gradlew bundleRelease assembleRelease --no-daemon
 
       - name: Verify signature
         run: jarsigner -verify -verbose -certs android/app/build/outputs/bundle/release/app-release.aab | head -20
@@ -63,3 +63,8 @@ jobs:
         with:
           name: fintrx-release-aab
           path: android/app/build/outputs/bundle/release/app-release.aab
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fintrx-release-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
