@@ -31,7 +31,7 @@ export function BudgetsScreen({
         Set a budget
       </Button>
       <p className="text-center text-xs text-muted-foreground">
-        Budgets reset monthly. Bars turn red the moment a category crosses its limit.
+        Set a monthly limit per category. The bar turns red the moment you cross it.
       </p>
     </div>
   );

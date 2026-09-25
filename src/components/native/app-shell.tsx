@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   LayoutGrid,
   ArrowLeftRight,
@@ -111,7 +112,6 @@ export function AppShell({
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col bg-background">
-      {/* iOS-style large-title header */}
       <header className="sticky top-0 z-10 border-b border-border/60 bg-background/80 backdrop-blur-xl">
         <div className="flex items-center justify-between px-4 pb-2 pt-3">
           <h1 className="text-[28px] font-bold tracking-tight">
@@ -127,47 +127,60 @@ export function AppShell({
         </div>
       </header>
 
-      {/* Content with iOS-like fade/slide transitions between tabs */}
       <main className="flex-1">
-        <div key={tab} className="animate-tab-enter">
-          {tab === "home" && (
-            <HomeScreen transactions={transactions} categories={categories} />
-          )}
-          {tab === "transactions" && (
-            <TransactionsScreen
-              transactions={transactions}
-              categories={categories}
-              onEdit={setEditing}
-              onDelete={setDeleting}
-            />
-          )}
-          {tab === "ask" && (
-            <div className="px-4 pb-32 pt-4">
-              <AskAi transactions={transactions} categories={categories} />
-            </div>
-          )}
-          {tab === "budgets" && (
-            <BudgetsScreen
-              transactions={transactions}
-              budgets={budgets}
-              categories={categories}
-              onSetBudget={() => setBudgetOpen(true)}
-            />
-          )}
-        </div>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={tab}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ type: "spring", stiffness: 380, damping: 34 }}
+          >
+            {tab === "home" && (
+              <HomeScreen
+                transactions={transactions}
+                categories={categories}
+                onSeeAll={() => switchTab("transactions")}
+                onAdd={() => setAddOpen(true)}
+              />
+            )}
+            {tab === "transactions" && (
+              <TransactionsScreen
+                transactions={transactions}
+                categories={categories}
+                onEdit={setEditing}
+                onDelete={setDeleting}
+                onAdd={() => setAddOpen(true)}
+              />
+            )}
+            {tab === "ask" && (
+              <div className="px-4 pb-32 pt-4">
+                <AskAi transactions={transactions} categories={categories} />
+              </div>
+            )}
+            {tab === "budgets" && (
+              <BudgetsScreen
+                transactions={transactions}
+                budgets={budgets}
+                categories={categories}
+                onSetBudget={() => setBudgetOpen(true)}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
-      {/* FAB - 56dp, iOS-style floating action */}
-      <button
+      <motion.button
         onClick={() => setAddOpen(true)}
-        className="fixed bottom-24 right-4 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-teal-500 text-white shadow-lg shadow-teal-500/30 active:scale-95 transition-transform"
+        whileTap={{ scale: 0.86, rotate: 90 }}
+        transition={{ type: "spring", stiffness: 500, damping: 22 }}
+        className="fixed right-4 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-teal-500 text-white shadow-lg shadow-teal-500/30"
         aria-label="Add transaction"
         style={{ bottom: "calc(6rem + env(safe-area-inset-bottom))" }}
       >
         <Plus className="h-7 w-7" strokeWidth={2.5} />
-      </button>
+      </motion.button>
 
-      {/* Bottom tab bar - iOS style, blurred, safe-area aware */}
       <nav
         className="fixed inset-x-0 bottom-0 z-20 border-t border-border/60 bg-background/85 backdrop-blur-xl"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
@@ -180,27 +193,32 @@ export function AppShell({
               className="flex h-14 flex-col items-center justify-center gap-0.5 active:opacity-60"
               aria-current={tab === id ? "page" : undefined}
             >
-              <Icon
-                className={cn(
-                  "h-[22px] w-[22px]",
-                  tab === id ? "text-teal-500" : "text-muted-foreground"
-                )}
-                strokeWidth={tab === id ? 2.4 : 1.8}
-              />
-              <span
-                className={cn(
-                  "text-[10px] font-medium",
-                  tab === id ? "text-teal-500" : "text-muted-foreground"
-                )}
+              <motion.span
+                animate={{ scale: tab === id ? 1 : 0.92 }}
+                transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                className="flex flex-col items-center gap-0.5"
               >
-                {label}
-              </span>
+                <Icon
+                  className={cn(
+                    "h-[22px] w-[22px]",
+                    tab === id ? "text-teal-500" : "text-muted-foreground"
+                  )}
+                  strokeWidth={tab === id ? 2.4 : 1.8}
+                />
+                <span
+                  className={cn(
+                    "text-[10px] font-medium",
+                    tab === id ? "text-teal-500" : "text-muted-foreground"
+                  )}
+                >
+                  {label}
+                </span>
+              </motion.span>
             </button>
           ))}
         </div>
       </nav>
 
-      {/* Add transaction sheet */}
       <Drawer open={addOpen} onOpenChange={setAddOpen}>
         <DrawerContent className="max-h-[92dvh]">
           <DrawerHeader>
@@ -212,7 +230,6 @@ export function AppShell({
         </DrawerContent>
       </Drawer>
 
-      {/* Edit transaction sheet */}
       <Drawer open={editing !== null} onOpenChange={(o) => !o && setEditing(null)}>
         <DrawerContent className="max-h-[92dvh]">
           <DrawerHeader>
@@ -237,11 +254,10 @@ export function AppShell({
         </DrawerContent>
       </Drawer>
 
-      {/* Budget sheet */}
       <Drawer open={budgetOpen} onOpenChange={setBudgetOpen}>
         <DrawerContent>
           <DrawerHeader>
-            <DrawerTitle>Set monthly budget</DrawerTitle>
+            <DrawerTitle>Set a monthly budget</DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-8">
             <BudgetForm
@@ -256,17 +272,18 @@ export function AppShell({
         </DrawerContent>
       </Drawer>
 
-      {/* Delete confirmation - iOS-style alert */}
       <AlertDialog open={deleting !== null} onOpenChange={(o) => !o && setDeleting(null)}>
         <AlertDialogContent className="max-w-xs rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete transaction?</AlertDialogTitle>
+            <AlertDialogTitle>Delete this transaction?</AlertDialogTitle>
             <AlertDialogDescription>
-              {deleting?.description} - this can't be undone.
+              {deleting
+                ? `"${deleting.description}" - ₹${deleting.amount.toLocaleString("en-IN")} - will be gone for good.`
+                : ""}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl">Keep it</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="rounded-xl bg-red-600 hover:bg-red-500"
