@@ -16,6 +16,8 @@ import { TransactionList } from "@/components/transaction-list";
 import { TransactionForm } from "@/components/transaction-form";
 import { BudgetForm } from "@/components/budget-form";
 import { AskAi } from "@/components/ask-ai";
+import { AppShell } from "@/components/native/app-shell";
+import { useAppShell } from "@/lib/platform";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +43,7 @@ const Index = () => {
   const [budgetDialogOpen, setBudgetDialogOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [ready, setReady] = useState(false);
+  const appShell = useAppShell();
 
   useEffect(() => {
     (async () => {
@@ -67,6 +70,20 @@ const Index = () => {
       <div className="container mx-auto py-24 px-4 text-center text-muted-foreground">
         Loading your data...
       </div>
+    );
+  }
+
+  if (appShell) {
+    return (
+      <AppShell
+        transactions={transactions}
+        categories={categories}
+        budgets={budgets}
+        addTransaction={addTransaction}
+        updateTransaction={updateTransaction}
+        deleteTransaction={deleteTransaction}
+        setBudget={setBudget}
+      />
     );
   }
 
