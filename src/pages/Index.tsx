@@ -39,7 +39,7 @@ const Index = () => {
   const { categories } = useCategories();
   const [mobileDialogOpen, setMobileDialogOpen] = useState(false);
   const [budgetDialogOpen, setBudgetDialogOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -50,10 +50,11 @@ const Index = () => {
     })();
   }, []);
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle("dark");
-  };
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDarkMode);
+  }, [isDarkMode]);
+
+  const toggleDarkMode = () => setIsDarkMode((v) => !v);
 
   const handleExport = () => {
     const csv = transactionsToCsv(transactions, categories);
