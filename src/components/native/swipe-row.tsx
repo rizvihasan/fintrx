@@ -68,7 +68,7 @@ export function SwipeRow({ children, onEdit, onDelete }: SwipeRowProps) {
         </button>
       </div>
       <div
-        className="relative transition-transform duration-150 ease-out"
+        className="relative bg-secondary transition-transform duration-150 ease-out"
         style={{
           transform: `translateX(${offset}px)`,
           transition: swiping.current ? "none" : undefined,
