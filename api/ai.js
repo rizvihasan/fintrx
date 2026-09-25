@@ -94,7 +94,12 @@ export default async function handler(req, res) {
         MODEL_FAST,
         20
       );
-      const match = categories.find((c) => c.id === result.trim());
+      const norm = result.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const match = categories.find((c) => {
+        const id = c.id.toLowerCase().replace(/[^a-z0-9]/g, "");
+        const name = c.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+        return norm === id || norm === name || norm.includes(id) || norm.includes(name);
+      });
       return res.status(200).json({ result: match ? match.id : "other" });
     }
 
